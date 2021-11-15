@@ -23,7 +23,7 @@ int main() {
         else if (child_pid == 0) {
             printf("Для потомка до усыновления №%d --- PID: %d, PPID: %d, GROUP: %d\n", i + 1, getpid(), getppid(), getpgrp());
             sleep(SLEEP_TIME * 4);
-            printf("Для потомка после усыновления №%d --- PID: %d, PPID: %d, GROUP: %d\n", i + 1, getpid(), getppid(), getpgrp());
+            printf("\nДля потомка после усыновления №%d --- PID: %d, PPID: %d, GROUP: %d\n", i + 1, getpid(), getppid(), getpgrp());
             return no_error;
         }
         else {
@@ -36,7 +36,7 @@ int main() {
     for (int i = 0; i < PROC_COUNT; ++i) {
         printf("Потомок №%d --- PID: %d, ", i + 1, children[i]);
     }
-    printf("\b\b\nПредок завершился\n");
+    printf("\nПредок завершился\n");
 
     return no_error;
 }
