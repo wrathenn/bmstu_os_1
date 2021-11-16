@@ -14,8 +14,8 @@ enum error_t {
 
 int main() {
     int children[PROC_COUNT];
-    char *commands[PROC_COUNT] = {"ls", "ps", "pwd"};
-    char *args[PROC_COUNT] = {"-al", "ax", "-L"};
+    char *commands[PROC_COUNT] = {"./my_test.out", "./my_test.out", "./my_test.out"};
+    char *args[PROC_COUNT] = {"ПЕРВЫЙ", "ВТОРОЙ_", "ТРЕТИЙ__"};
     printf("Предок --- PID: %d, GROUP: %d\n", getpid(), getpgrp());
 
     for (int i = 0; i < PROC_COUNT; ++i) {
