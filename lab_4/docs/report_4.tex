@@ -124,6 +124,7 @@
 			    {Э}{{\selectfont\char221}}1
 			    {Ю}{{\selectfont\char222}}1
 			    {Я}{{\selectfont\char223}}1
+			    {№}{{\selectfont N}}1
 }
 \captionsetup[lstlisting]{justification=raggedright, singlelinecheck=off}
 
@@ -141,48 +142,48 @@
     собственный, предка, группы до блокировки и после блокировки.
     
     \begin{lstlisting}[label=code:fork, caption=Процессы-сироты, language=C]
-    	#include <stdio.h>
-    	#include <stdlib.h>
-    	
-    	enum error_t {
-    		no_error,
-    		fork_failure
-    	};
-    	
-    	#define PROC_COUNT 3
-    	#define SLEEP_TIME 1
-    	
-    	int main() {
-    		int children[PROC_COUNT];
-    		printf("\n Предок --- PID: %d, GROUP: %d\n", getpid(), getpgrp());
-    		
-    		for (int i = 0; i < PROC_COUNT; ++i) {
-    			int child_pid = fork();
-    			
-    			if (child_pid == -1) {
-    				perror("Ошибка fork\n");
-    				return fork_failure;
-    			}
-    			else if (child_pid == 0) {
-    				printf("Для потомка до усыновления No%d --- PID: %d, PPID: %d, GROUP: %d\n", i + 1, getpid(), getppid(), getpgrp());
-    				sleep(SLEEP_TIME * 4);
-    				printf("Для потомка после усыновления No%d --- PID: %d, PPID: %d, GROUP: %d\n", i + 1, getpid(), getppid(), getpgrp());
-    				return no_error;
-    			}
-    			else {
-    				sleep(SLEEP_TIME);
-    				children[i] = child_pid;
-    			}
-    		}
-    		
-    		printf("Процессы, созданные предком:\n");
-    		for (int i = 0; i < PROC_COUNT; ++i) {
-    			printf("Потомок No%d --- PID: %d, ", i + 1, children[i]);
-    		}
-    		printf("\b\b\nПредок завершился\n");
-    		
-    		return no_error;
-    	}
+	    #include <stdio.h>
+	    #include <stdlib.h>
+	    
+	    enum error_t {
+	    	no_error,
+	    	fork_failure
+	    };
+	    
+	    #define PROC_COUNT 2
+	    #define SLEEP_TIME 1
+	    
+	    int main() {
+	    	int children[PROC_COUNT];
+	    	printf("\nПредок --- PID: %d, GROUP: %d\n", getpid(), getpgrp());
+	    	
+	    	for (int i = 0; i < PROC_COUNT; ++i) {
+	    		int child_pid = fork();
+	    		
+	    		if (child_pid == -1) {
+	    			perror("Ошибка fork\n");
+	    			return fork_failure;
+	    		}
+	    		else if (child_pid == 0) {
+	    			printf("Для потомка до усыновления №%d --- PID: %d, PPID: %d, GROUP: %d\n", i + 1, getpid(), getppid(), getpgrp());
+	    			sleep(SLEEP_TIME * 4);
+	    			printf("\nДля потомка после усыновления №%d --- PID: %d, PPID: %d, GROUP: %d\n", i + 1, getpid(), getppid(), getpgrp());
+	    			return no_error;
+	    		}
+	    		else {
+	    			sleep(SLEEP_TIME);
+	    			children[i] = child_pid;
+	    		}
+	    	}
+	    	
+	    	printf("Процессы, созданные предком:\n");
+	    	for (int i = 0; i < PROC_COUNT; ++i) {
+	    		printf("Потомок №%d --- PID: %d, ", i + 1, children[i]);
+	    	}
+	    	printf("\nПредок завершился\n");
+	    	
+	    	return no_error;
+	    }
     \end{lstlisting}
 
 	\begin{figure}[H]
@@ -211,7 +212,7 @@
 			fork_failure
 		};
 		
-		#define PROC_COUNT 3
+		#define PROC_COUNT 2
 		#define SLEEP_TIME 1
 		
 		int main() {
@@ -227,7 +228,7 @@
 				}
 				else if (child_pid == 0) {
 					sleep(SLEEP_TIME);
-					printf("Для потомка No%d --- PID: %d, PPID: %d, GROUP: %d\n", i + 1, getpid(), getppid(), getpgrp());
+					printf("Для потомка №%d --- PID: %d, PPID: %d, GROUP: %d\n", i + 1, getpid(), getppid(), getpgrp());
 					return 0;
 				}
 				else {
@@ -375,7 +376,7 @@
 			exec_fail
 		};
 		
-		#define PROC_COUNT 3
+		#define PROC_COUNT 2
 		#define SLEEP_TIME 2
 		
 		int main() {
@@ -393,7 +394,7 @@
 				}
 				else if (child_pid == 0) {
 					sleep(SLEEP_TIME);
-					printf("Для потомка No%d --- PID: %d, PPID: %d, GROUP: %d\n", i + 1, getpid(), getppid(), getpgrp());
+					printf("Для потомка №%d --- PID: %d, PPID: %d, GROUP: %d\n", i + 1, getpid(), getppid(), getpgrp());
 					
 					int res = execlp(commands[i], args[i], 0);
 					if (res == -1) {
@@ -464,7 +465,7 @@
 			pipe_fail
 		};
 		
-		#define PROC_COUNT 3
+		#define PROC_COUNT 2
 		#define SLEEP_TIME 2
 		#define STR_BUFF_SIZE 64
 		
@@ -475,7 +476,7 @@
 				return pipe_fail;
 			}
 			
-			char *msgs[PROC_COUNT] = {"First msg\n", "Second msg\n", "Third message\n"};
+			char *msgs[PROC_COUNT] = {"First msg\n", "__Second msg__\n", "___Third message___\n"};
 			char str_buff[STR_BUFF_SIZE] = {0};
 			
 			int children[PROC_COUNT];
@@ -489,12 +490,12 @@
 					return fork_fail;
 				}
 				else if (child_pid == 0) {
-					printf("Для потомка No%d --- PID: %d, PPID: %d, GROUP: %d\n", i + 1, getpid(), getppid(), getpgrp());
+					printf("Для потомка №%d --- PID: %d, PPID: %d, GROUP: %d\n", i + 1, getpid(), getppid(), getpgrp());
 					
 					close(pipefd[0]);
 					write(pipefd[1], msgs[i], strlen(msgs[i]));
 					
-					printf("Сообщение No%d отправлено потомку\n\n", i + 1);
+					printf("Сообщение №%d отправлено потомку\n\n", i + 1);
 					
 					return no_error;
 				}
@@ -564,12 +565,12 @@
 			pipe_fail
 		};
 		
-		#define PROC_COUNT 3
+		#define PROC_COUNT 2
 		#define SLEEP_TIME 2
 		#define STR_BUFF_SIZE 64
 		
 		void do_nothing(int sigint) {
-			printf("Ничего не происходит?\n");
+			printf("\n");
 		}
 		
 		static int sig_status = 0;
@@ -601,7 +602,7 @@
 					return fork_fail;
 				}
 				else if (child_pid == 0) {
-					printf("Для потомка No%d --- PID: %d, PPID: %d, GROUP: %d\n", i + 1, getpid(), getppid(), getpgrp());
+					printf("Для потомка №%d --- PID: %d, PPID: %d, GROUP: %d\n", i + 1, getpid(), getppid(), getpgrp());
 					
 					signal(SIGINT, inc_status);
 					sleep(SLEEP_TIME);
@@ -609,7 +610,7 @@
 					if (sig_status != 0) {
 						close(pipefd[0]);
 						write(pipefd[1], msgs[i], strlen(msgs[i]));
-						printf("Сообщение No%d отправлено потомку\n\n", i + 1);
+						printf("Сообщение №%d отправлено потомку\n\n", i + 1);
 					}
 					else {
 						printf("Сигнала не было\n\n");
@@ -654,8 +655,19 @@
 		
 		\centering
 		
-		\includegraphics[width=\linewidth]{img/task_05.png}
-		\caption{Демонстрация работы программы (задание №5).}
+		\includegraphics[width=0.85\linewidth]{img/task_05_no.png}
+		\caption{Демонстрация работы программы - сигнала не поступило (задание №5).}
+		
+		\label{fig:task_05}
+		
+	\end{figure}
+
+	\begin{figure}[H]
+		
+		\centering
+		
+		\includegraphics[width=0.85\linewidth]{img/task_05_yes.png}
+		\caption{Демонстрация работы программы - сигнал поступил (задание №5).}
 		
 		\label{fig:task_05}
 		
