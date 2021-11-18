@@ -11,12 +11,12 @@ enum error_t {
     pipe_fail
 };
 
-#define PROC_COUNT 3
+#define PROC_COUNT 2
 #define SLEEP_TIME 2
 #define STR_BUFF_SIZE 64
 
 void do_nothing(int sigint) {
-    printf("Ничего не происходит?\n");
+    printf("\n");
 }
 
 static int sig_status = 0;

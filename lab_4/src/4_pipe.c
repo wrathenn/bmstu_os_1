@@ -10,7 +10,7 @@ enum error_t {
     pipe_fail
 };
 
-#define PROC_COUNT 3
+#define PROC_COUNT 2
 #define SLEEP_TIME 2
 #define STR_BUFF_SIZE 64
 
@@ -21,7 +21,7 @@ int main() {
         return pipe_fail;
     }
 
-    char *msgs[PROC_COUNT] = {"First msg\n", "Second msg\n", "Third message\n"};
+    char *msgs[PROC_COUNT] = {"First msg\n", "__Second msg__\n", "___Third message___\n"};
     char str_buff[STR_BUFF_SIZE] = {0};
 
     int children[PROC_COUNT];

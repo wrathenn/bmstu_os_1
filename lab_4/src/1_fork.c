@@ -6,7 +6,7 @@ enum error_t {
     fork_failure
 };
 
-#define PROC_COUNT 3
+#define PROC_COUNT 2
 #define SLEEP_TIME 1
 
 int main() {
