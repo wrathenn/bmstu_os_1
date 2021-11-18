@@ -9,13 +9,13 @@ enum error_t {
     exec_fail
 };
 
-#define PROC_COUNT 3
+#define PROC_COUNT 2
 #define SLEEP_TIME 2
 
 int main() {
     int children[PROC_COUNT];
-    char *commands[PROC_COUNT] = {"./my_test.out", "./my_test.out", "./my_test.out"};
-    char *args[PROC_COUNT] = {"ПЕРВЫЙ", "ВТОРОЙ_", "ТРЕТИЙ__"};
+    char *commands[PROC_COUNT] = {"./weight_index.out", "./triangle_type.out"};
+    char *args[PROC_COUNT] = {"ПЕРВЫЙ", "__ВТОРОЙ__", ""};
     printf("Предок --- PID: %d, GROUP: %d\n", getpid(), getpgrp());
 
     for (int i = 0; i < PROC_COUNT; ++i) {
