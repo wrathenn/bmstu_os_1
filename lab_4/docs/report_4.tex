@@ -382,7 +382,7 @@
 		int main() {
 			int children[PROC_COUNT];
 			char *commands[PROC_COUNT] = {"./weight_index.out", "./triangle_type.out"};
-			char *args[PROC_COUNT] = {"ПЕРВЫЙ", "__ВТОРОЙ__", ""};
+			char *args[PROC_COUNT] = {"ПЕРВЫЙ", "__ВТОРОЙ__"};
 			printf("Предок --- PID: %d, GROUP: %d\n", getpid(), getpgrp());
 			
 			for (int i = 0; i < PROC_COUNT; ++i) {
@@ -476,7 +476,7 @@
 				return pipe_fail;
 			}
 			
-			char *msgs[PROC_COUNT] = {"First msg\n", "__Second msg__\n", "___Third message___\n"};
+			char *msgs[PROC_COUNT] = {"First msg\n", "__Second msg__\n"};
 			char str_buff[STR_BUFF_SIZE] = {0};
 			
 			int children[PROC_COUNT];
@@ -587,7 +587,7 @@
 				return pipe_fail;
 			}
 			
-			char *msgs[PROC_COUNT] = {"First msg\n", "Second msg\n", "Third message\n"};
+			char *msgs[PROC_COUNT] = {"First msg\n", "__Second msg__\n"};
 			char str_buff[STR_BUFF_SIZE] = {0};
 			
 			int children[PROC_COUNT];
