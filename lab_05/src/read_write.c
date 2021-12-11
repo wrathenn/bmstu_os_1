@@ -18,13 +18,6 @@
 #define WAIT_READERS 2
 #define WAIT_WRITERS 3
 
-#define SEM_ERROR 1
-#define SEM_SET_ERR 2
-#define SHM_ERR 3
-#define MEM_ERR 4
-#define FORK_ERR 5
-#define SEMOP_ERR 6
-
 struct sembuf start_write[] = {
         {WAIT_WRITERS,   1,  0},
         {ACTIVE_READERS, 0,  0},
@@ -54,7 +47,7 @@ int *shm = NULL;
 void writer(int semID, int writer_id) {
     if (semop(semID, start_write, 5) == -1) {
         perror("Semop start write error");
-        exit(SEMOP_ERR);
+        exit(-1);
     }
 
     (*shm)++;
@@ -62,7 +55,7 @@ void writer(int semID, int writer_id) {
 
     if (semop(semID, stop_write, 1) == -1) {
         perror("Semop stop write error");
-        exit(SEMOP_ERR);
+        exit(-1);
     }
 
     srand(time(NULL));
@@ -72,14 +65,14 @@ void writer(int semID, int writer_id) {
 void reader(int semID, int readerID) {
     if (semop(semID, start_read, 5) == -1) {
         perror("Semop start read error");
-        exit(SEMOP_ERR);
+        exit(-1);
     }
 
     printf(">> Reader[ID = %d]: reads value %d\n", readerID, *shm);
 
     if (semop(semID, stop_read, 1) == -1) {
         perror("Semop end read error");
-        exit(SEMOP_ERR);
+        exit(-1);
     }
 
     srand(time(NULL));
@@ -97,24 +90,24 @@ int main() {
     int semID = semget(IPC_PRIVATE, SEM_AMOUNT, IPC_CREAT | perms);
     if (semID == -1) {
         perror("Semaphore creation error");
-        exit(SEM_ERROR);
+        exit(-1);
     }
 
     if (semctl(semID, WAIT_READERS, SETVAL, 1) == -1) {
         perror("Semaphore control error");
-        exit(SEM_SET_ERR);
+        exit(-1);
     }
 
     int shmID = shmget(IPC_PRIVATE, sizeof(int), IPC_CREAT | perms);
     if (shmID == -1) {
         perror("Shared memory creation error");
-        exit(SHM_ERR);
+        exit(-1);
     }
 
     shm = shmat(shmID, 0, 0);
     if (*shm == -1) {
         perror("Memory attach error");
-        exit(MEM_ERR);
+        exit(-1);
     }
 
     signal(SIGINT, set_status);
@@ -123,7 +116,7 @@ int main() {
     for (int i = 0; i < WRITERS_AMOUNT; i++) {
         if ((childID = fork()) == -1) {
             perror("Writer fork error");
-            exit(FORK_ERR);
+            exit(-1);
         }
         else if (childID == 0) {
             while (!sig_status) {
@@ -136,7 +129,7 @@ int main() {
     for (int i = 0; i < READERS_AMOUNT; i++) {
         if ((childID = fork()) == -1) {
             perror("Reader fork error");
-            exit(FORK_ERR);
+            exit(-1);
         }
         else if (childID == 0) {
             while (!sig_status) {
@@ -152,11 +145,13 @@ int main() {
 
     if (shmdt(shm) == -1) {
         perror("shmdt error");
-        exit(MEM_ERR);
+        exit(-1);
     }
 
     if (shmctl(shmID, IPC_RMID, NULL) == -1) {
         perror("shmctl error");
-        exit(MEM_ERR);
+        exit(-1);
     }
+
+    return 0;
 }

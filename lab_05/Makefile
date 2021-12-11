@@ -8,4 +8,4 @@ r_w.out: src/read_write.c
 2: r_w.out
 
 clean:
-	rm -f *.o *.exe *.out
+	rm *.o *.exe *.out

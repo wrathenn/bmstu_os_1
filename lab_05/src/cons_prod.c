@@ -9,7 +9,6 @@
 #include <unistd.h>
 
 #define SEM_AMOUNT 3
-
 #define SEM_BIN 0
 #define SEM_E 1
 #define SEM_F 2
@@ -21,22 +20,14 @@
 
 #define PROC_AMOUNT 3
 
-#define SEM_ERR 1
-#define SEM_SET_ERR 2
-#define SHM_ERR 3
-#define MEM_ERR 4
-#define FORK_ERR 5
-#define SEMOP_ERR 6
-
 typedef struct buf {
     int rpos;
     int wpos;
+    int cursymb;
     char data[EMPTY_NUM];
 } buf_t;
 
 buf_t *shm = NULL;
-
-char *alphabet = "abcdefghijklmnopqrstuvwxyz";
 
 struct sembuf prod_start[] = {
         {SEM_E,   -1, 0},
@@ -60,32 +51,33 @@ struct sembuf read_end[] = {
 
 void producer(int semID, int prodID) {
     srand(time(NULL));
-    sleep(rand() % 4);
+    sleep(rand() % 3);
 
     if (semop(semID, prod_start, 2) == -1) {
         perror("Producer semop begin error");
-        exit(SEMOP_ERR);
+        exit(-1);
     }
 
     int wpos = shm->wpos;
-    shm->data[wpos] = alphabet[wpos];
+    shm->data[wpos] = shm->cursymb;
+    shm->cursymb++;
 
     printf("<< Producer[ID = %d]: wrote %c\n", prodID, shm->data[wpos]);
     shm->wpos++;
 
     if (semop(semID, prod_end, 2) == -1) {
         perror("Producer semop end error");
-        exit(SEMOP_ERR);
+        exit(-1);
     }
 }
 
 void consumer(int semID, int consID) {
     srand(time(NULL));
-    sleep(rand() % 4);
+    sleep(rand() % 3);
 
     if (semop(semID, read_start, 2) == -1) {
         perror("Consumer semop begin error");
-        exit(SEMOP_ERR);
+        exit(-1);
     }
 
     printf(">> Consumer[ID = %d]: read %c\n", consID, shm->data[shm->rpos]);
@@ -93,7 +85,7 @@ void consumer(int semID, int consID) {
 
     if (semop(semID, read_end, 2) == -1) {
         perror("Consumer semop end error");
-        exit(SEMOP_ERR);
+        exit(-1);
     }
 }
 
@@ -102,33 +94,34 @@ int main() {
     int semID = semget(IPC_PRIVATE, SEM_AMOUNT, IPC_CREAT | perms);
     if (semID == -1) {
         perror("Semaphore creation error.");
-        exit(SEM_ERR);
+        exit(-1);
     }
 
     if (semctl(semID, SEM_BIN, SETVAL, 1) == -1 ||
         semctl(semID, SEM_E, SETVAL, EMPTY_NUM) == -1 ||
         semctl(semID, SEM_F, SETVAL, 0) == -1) {
         perror("Semaphore set error.");
-        exit(SEM_SET_ERR);
+        exit(-1);
     }
 
     int shmID = shmget(IPC_PRIVATE, sizeof(buf_t), IPC_CREAT | perms);
     if (shmID == -1) {
         perror("Shared memory creation error.");
-        exit(SHM_ERR);
+        exit(-1);
     }
 
     shm = shmat(shmID, 0, 0);
     if (shm == (void *) -1) {
         perror("Memory all error.");
-        exit(MEM_ERR);
+        exit(-1);
     }
+    shm->cursymb = 'a';
 
     pid_t childID;
     for (int i = 0; i < PROC_AMOUNT; ++i) {
         if ((childID = fork()) == -1) {
             perror("Producer fork error");
-            exit(FORK_ERR);
+            exit(-1);
         }
         else if (childID == 0) {
             for (int j = 0; j < PRODUCE_NUM; ++j) {
@@ -139,7 +132,7 @@ int main() {
 
         if ((childID = fork()) == -1) {
             perror("Consumer fork error");
-            exit(FORK_ERR);
+            exit(-1);
         }
         else if (childID == 0) {
             for (int j = 0; j < CONSUME_NUM; ++j) {
@@ -156,12 +149,12 @@ int main() {
 
     if (shmdt(shm) == -1) {
         perror("smhdt error");
-        exit(MEM_ERR);
+        exit(-1);
     }
 
     if (shmctl(shmID, IPC_RMID, NULL) == -1) {
         perror("shmctl error");
-        exit(MEM_ERR);
+        exit(-1);
     }
 
     exit(0);
