@@ -9,6 +9,26 @@ descriptor_segment struc
     attr_2      db  0       ; Граница (биты 16...19) и атрибуты 2
     base_h      db  0       ; База, биты 24...31
 descriptor_segment ends
+; 5 и 6 биты dpl = 00
+; limit base_h base_m attr_1 attr_2 base_l
+; attr_1:
+; 92h = 10010010b
+; 7-й - бит присутствия
+; 5-6 - DPL.
+; 4-й - идентефикатор сег
+; 3 - предназначения 0 - данных или стека, 1 - кода
+; 2 - для кода - подчиненный (0) или обычный (1), 0 - данных, 1 - стека
+; 1 - для кода - 1 - чтение разрешено, для данных - модификация данных - 1 - разрешена
+; 0 - attach
+
+; attr_2:
+; 8Fh = 10001111
+; 7-й - бит гранулярности
+; 6-й - бит разрядности операндов
+; 5-й - не исп.
+; 4-й - AVL (исп. прикл. прогр.)
+; 0-3 - limit.
+
 ; ----- Структура для описания шлюзов ловушек ----- ;
 descriptor_trap struc
     offset_1    dw  0       ; Смещение (0...15)
@@ -27,12 +47,14 @@ data segment use16
         gdt_stack descriptor_segment <255, 0, 0, 92h, 0, 0>                     ; Селектор 24, сегмент стека
         gdt_screen32 descriptor_segment <3999, 8000h, 0Bh, 92h, 0, 0>             ; Селектор 32, видеопамять
 
-        gdt_data_4gb descriptor_segment <0FFFFh, 0, 10h, 92h, 8Fh, 0>           ; Селектор 40, большой сегмент данных на 4ГБ, база - 200000h = 2МБ,
+        gdt_data_4gb descriptor_segment <0FFFFh, 0, 10h, 92h, 8Fh, 0>           ; Селектор 40, большой сегмент данных на 4ГБ,
             ;граница - 0FFFFFh + 1 => 2^20 страниц по 4КБ 
         gdt_size = $ - gdt_null     ; Размер GDT
 
     ; --- Таблица дескрипторов прерываний - IDT ---
         idt label word
+            ; 5 и 6 биты rpl
+            ; 8Eh = 10001110b
             descriptor_trap 13 dup (<dummy>) ; Дескрипторы исключений 0...12
             descriptor_trap <exc13>
             descriptor_trap 18 dup (<dummy>) ; Дескрипторы исключений 14...31
@@ -56,7 +78,7 @@ data segment use16
             dbg_str_len = $ - dbg_str
 
         ; Для вывода важной информации
-            timer_output    dw  158       ; Позиция для вывода информации от таймера
+            timer_output    dw  158     ; Позиция для вывода информации от таймера
             timer_symbol    db  2Fh     ; Символ таймера
             timer_count     db  0       ; Счетчик таймера
 
