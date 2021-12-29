@@ -1,10 +1,10 @@
 #include <stdio.h>
-#include "stdlib.h"
-#include "time.h"
-#include "sys/stat.h"
+#include <stdlib.h>
+#include <time.h>
+#include <sys/stat.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
-#include<sys/shm.h>
+#include <sys/shm.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -51,7 +51,7 @@ void writer(int semID, int writer_id) {
     }
 
     (*shm)++;
-    printf("<< Writer[ID = %d]: writes value %d\n", writer_id, *shm);
+    printf("Writer[ID = %d]: writes value %d\n", writer_id, *shm);
 
     if (semop(semID, stop_write, 1) == -1) {
         perror("Semop stop write error");
@@ -68,7 +68,7 @@ void reader(int semID, int readerID) {
         exit(-1);
     }
 
-    printf(">> Reader[ID = %d]: reads value %d\n", readerID, *shm);
+    printf("Reader[ID = %d]: reads value %d\n", readerID, *shm);
 
     if (semop(semID, stop_read, 1) == -1) {
         perror("Semop end read error");

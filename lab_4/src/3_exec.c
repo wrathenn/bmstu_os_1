@@ -14,8 +14,8 @@ enum error_t {
 
 int main() {
     int children[PROC_COUNT];
-    char *commands[PROC_COUNT] = {"./weight_index.out", "./triangle_type.out"};
-    char *args[PROC_COUNT] = {"ПЕРВЫЙ", "__ВТОРОЙ__", ""};
+    char *commands[PROC_COUNT] = {"./triangle_type.out", "./string_uppercase.out"};
+    char *args[PROC_COUNT] = {};
     printf("Предок --- PID: %d, GROUP: %d\n", getpid(), getpgrp());
 
     for (int i = 0; i < PROC_COUNT; ++i) {
@@ -26,7 +26,6 @@ int main() {
             return fork_fail;
         }
         else if (child_pid == 0) {
-            sleep(SLEEP_TIME);
             printf("Для потомка №%d --- PID: %d, PPID: %d, GROUP: %d\n", i + 1, getpid(), getppid(), getpgrp());
 
             int res = execlp(commands[i], args[i], 0);

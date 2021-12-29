@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <wait.h>
 #include <string.h>
-#include <signal.h>
+#include <signal.h> 
 
 enum error_t {
     no_error,
@@ -15,14 +15,10 @@ enum error_t {
 #define SLEEP_TIME 2
 #define STR_BUFF_SIZE 64
 
-void do_nothing(int sigint) {
-    printf("\n");
-}
-
 static int sig_status = 0;
 
-void inc_status(int sigint) {
-    sig_status++;
+void set_status(int sigint) {
+    sig_status = 1;
     printf("Статус увеличен - %d\n", sig_status);
 }
 
@@ -33,12 +29,12 @@ int main() {
         return pipe_fail;
     }
 
-    char *msgs[PROC_COUNT] = {"First msg\n", "Second msg\n", "Third message\n"};
+    char *msgs[PROC_COUNT] = {"First msg\n", "Second msg\n"};
     char str_buff[STR_BUFF_SIZE] = {0};
 
     int children[PROC_COUNT];
     printf("Предок --- PID: %d, GROUP: %d\n", getpid(), getpgrp());
-    signal(SIGINT, do_nothing);
+    signal(SIGINT, set_status);
 
     for (int i = 0; i < PROC_COUNT; ++i) {
         int child_pid = fork();
@@ -49,8 +45,6 @@ int main() {
         }
         else if (child_pid == 0) {
             printf("Для потомка №%d --- PID: %d, PPID: %d, GROUP: %d\n", i + 1, getpid(), getppid(), getpgrp());
-
-            signal(SIGINT, inc_status);
             sleep(SLEEP_TIME);
 
             if (sig_status != 0) {
@@ -95,3 +89,4 @@ int main() {
     printf("Предок завершился\n");
     return no_error;
 }
+Оптимизация форк, копи он райт)

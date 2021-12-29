@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include "stdlib.h"
-#include "time.h"
-#include "sys/stat.h"
+#include <stdlib.h>
+#include <time.h>
+#include <sys/stat.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <sys/shm.h>
@@ -23,7 +23,6 @@
 typedef struct buf {
     int rpos;
     int wpos;
-    int cursymb;
     char data[EMPTY_NUM];
 } buf_t;
 
@@ -51,7 +50,7 @@ struct sembuf read_end[] = {
 
 void producer(int semID, int prodID) {
     srand(time(NULL));
-    sleep(rand() % 3);
+    sleep(rand() % 4);
 
     if (semop(semID, prod_start, 2) == -1) {
         perror("Producer semop begin error");
@@ -59,10 +58,9 @@ void producer(int semID, int prodID) {
     }
 
     int wpos = shm->wpos;
-    shm->data[wpos] = shm->cursymb;
-    shm->cursymb++;
+    shm->data[wpos] = 'a' + wpos;
 
-    printf("<< Producer[ID = %d]: wrote %c\n", prodID, shm->data[wpos]);
+    printf("Producer[ID = %d]: wrote %c\n", prodID, shm->data[wpos]);
     shm->wpos++;
 
     if (semop(semID, prod_end, 2) == -1) {
@@ -73,14 +71,14 @@ void producer(int semID, int prodID) {
 
 void consumer(int semID, int consID) {
     srand(time(NULL));
-    sleep(rand() % 3);
+    sleep(rand() % 4);
 
     if (semop(semID, read_start, 2) == -1) {
         perror("Consumer semop begin error");
         exit(-1);
     }
 
-    printf(">> Consumer[ID = %d]: read %c\n", consID, shm->data[shm->rpos]);
+    printf("Consumer[ID = %d]: read %c\n", consID, shm->data[shm->rpos]);
     shm->rpos++;
 
     if (semop(semID, read_end, 2) == -1) {
@@ -97,9 +95,15 @@ int main() {
         exit(-1);
     }
 
-    if (semctl(semID, SEM_BIN, SETVAL, 1) == -1 ||
-        semctl(semID, SEM_E, SETVAL, EMPTY_NUM) == -1 ||
-        semctl(semID, SEM_F, SETVAL, 0) == -1) {
+    if (semctl(semID, SEM_BIN, SETVAL, 1) == -1) {
+        perror("Semaphore set error.");
+        exit(-1);
+    }
+    if (semctl(semID, SEM_E, SETVAL, EMPTY_NUM) == -1) {
+        perror("Semaphore set error.");
+        exit(-1);
+    }
+    if(semctl(semID, SEM_F, SETVAL, 0) == -1) {
         perror("Semaphore set error.");
         exit(-1);
     }
@@ -115,7 +119,6 @@ int main() {
         perror("Memory all error.");
         exit(-1);
     }
-    shm->cursymb = 'a';
 
     pid_t childID;
     for (int i = 0; i < PROC_AMOUNT; ++i) {
@@ -125,7 +128,7 @@ int main() {
         }
         else if (childID == 0) {
             for (int j = 0; j < PRODUCE_NUM; ++j) {
-                producer(semID, i);
+                producer(semID, getpid());
             }
             exit(0);
         }
@@ -136,7 +139,7 @@ int main() {
         }
         else if (childID == 0) {
             for (int j = 0; j < CONSUME_NUM; ++j) {
-                consumer(semID, i);
+                consumer(semID, getpid());
             }
             exit(0);
         }
@@ -157,5 +160,5 @@ int main() {
         exit(-1);
     }
 
-    exit(0);
+    return 0;
 }
